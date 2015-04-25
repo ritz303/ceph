@@ -282,7 +282,7 @@ TEST_P(StoreTest, SimpleListTest) {
     vector<ghobject_t> objects;
     ghobject_t next, current;
     while (!next.is_max()) {
-      int r = store->collection_list_partial(cid, current, 25, 50,
+      int r = store->collection_list_impl(cid, current, ghobject_t::get_max(), 50,
 					     0, &objects, &next);
       ASSERT_EQ(r, 0);
       cout << " got " << objects.size() << " next " << next << std::endl;
@@ -366,7 +366,7 @@ TEST_P(StoreTest, MultipoolListTest) {
     vector<ghobject_t> objects;
     ghobject_t next, current;
     while (!next.is_max()) {
-      int r = store->collection_list_partial(cid, current, 25, 50,
+      int r = store->collection_list_impl(cid, current, ghobject_t::get_max(), 50,
 					     0, &objects, &next);
       ASSERT_EQ(r, 0);
       cout << " got " << objects.size() << " next " << next << std::endl;
@@ -594,10 +594,10 @@ TEST_P(StoreTest, ManyObjectTest) {
 
   ghobject_t start, next;
   objects.clear();
-  r = store->collection_list_partial(
+  r = store->collection_list_impl(
     cid,
     ghobject_t::get_max(),
-    50,
+    ghobject_t::get_max(),
     60,
     0,
     &objects,
@@ -609,8 +609,8 @@ TEST_P(StoreTest, ManyObjectTest) {
   objects.clear();
   listed.clear();
   while (1) {
-    r = store->collection_list_partial(cid, start,
-				       50,
+    r = store->collection_list_impl(cid, start,
+				       ghobject_t::get_max(),
 				       60,
 				       0,
 				       &objects,
@@ -1096,7 +1096,7 @@ public:
     ghobject_t next, current;
     while (1) {
       cerr << "scanning..." << std::endl;
-      int r = store->collection_list_partial(cid, current, 50, 100,
+      int r = store->collection_list_impl(cid, current, ghobject_t::get_max(), 100,
 					     0, &objects, &next);
       ASSERT_EQ(r, 0);
       ASSERT_TRUE(sorted(objects));
@@ -1317,7 +1317,7 @@ TEST_P(StoreTest, HashCollisionTest) {
   listed.clear();
   ghobject_t current, next;
   while (1) {
-    r = store->collection_list_partial(cid, current, 50, 60,
+    r = store->collection_list_impl(cid, current, ghobject_t::get_max(), 60,
 				       0, &objects, &next);
     ASSERT_EQ(r, 0);
     ASSERT_TRUE(sorted(objects));
@@ -1412,7 +1412,7 @@ TEST_P(StoreTest, ScrubTest) {
   listed.clear();
   ghobject_t current, next;
   while (1) {
-    r = store->collection_list_partial(cid, current, 50, 60,
+    r = store->collection_list_impl(cid, current, ghobject_t::get_max(), 60,
                                        0, &objects, &next);
     ASSERT_EQ(r, 0);
     ASSERT_TRUE(sorted(objects));
