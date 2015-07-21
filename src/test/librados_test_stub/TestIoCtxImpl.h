@@ -70,6 +70,8 @@ public:
                                bufferlist *pbl);
   virtual int aio_remove(const std::string& oid, AioCompletionImpl *c) = 0;
 
+  virtual int append(const std::string& oid, const bufferlist &bl,
+                     const SnapContext &snapc) = 0;
   virtual int assert_exists(const std::string &oid) = 0;
 
   virtual int create(const std::string& oid, bool exclusive) = 0;
@@ -145,7 +147,7 @@ private:
   snap_t m_snap_seq;
   SnapContext m_snapc;
   atomic_t m_refcount;
-
+  atomic_t m_pending_ops;
 };
 
 } // namespace librados
