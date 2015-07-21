@@ -3232,7 +3232,7 @@ if (!set_conf_param(v, p1, p2, p3)) { \
 	SET_CONF_PARAM(v, &imgname, &lock_cookie, NULL);
 	break;
       case OPT_LOCK_REMOVE:
-	SET_CONF_PARAM(v, &imgname, &lock_client, &lock_cookie);
+	SET_CONF_PARAM(v, &imgname, &lock_cookie, &lock_client);
 	break;
       case OPT_METADATA_SET:
 	SET_CONF_PARAM(v, &imgname, &key, &value);
@@ -3271,6 +3271,12 @@ if (!set_conf_param(v, p1, p2, p3)) { \
   if (format_specified && opt_cmd != OPT_IMPORT && opt_cmd != OPT_CREATE) {
     cerr << "rbd: image format can only be set when "
 	 << "creating or importing an image" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if (opt_cmd != OPT_LOCK_ADD && lock_tag) {
+    cerr << "rbd: only the lock add command uses the --shared option"
+	 << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -3313,21 +3319,8 @@ if (!set_conf_param(v, p1, p2, p3)) { \
     imgname = NULL;
   }
 
-  if (opt_cmd != OPT_LOCK_ADD && lock_tag) {
-    cerr << "rbd: only the lock add command uses the --shared option"
-	 << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  if ((opt_cmd == OPT_LOCK_ADD || opt_cmd == OPT_LOCK_REMOVE) &&
-      !lock_cookie) {
-    cerr << "rbd: lock id was not specified" << std::endl;
-    return EXIT_FAILURE;
-  }
-
   if (opt_cmd != OPT_LIST &&
       opt_cmd != OPT_IMPORT &&
-      opt_cmd != OPT_IMPORT_DIFF &&
       opt_cmd != OPT_UNMAP && /* needs imgname but handled below */
       opt_cmd != OPT_SHOWMAPPED &&
       opt_cmd != OPT_MERGE_DIFF &&
@@ -3465,6 +3458,29 @@ if (!set_conf_param(v, p1, p2, p3)) { \
     cerr << "source pool: " << poolname << " dest pool: " << dest_poolname
       << std::endl;
     return EXIT_FAILURE;
+  }
+
+  if (opt_cmd == OPT_LOCK_ADD || opt_cmd == OPT_LOCK_REMOVE) {
+    if (!lock_cookie) {
+      cerr << "rbd: lock id was not specified" << std::endl;
+      return EXIT_FAILURE;
+    }
+    if (opt_cmd == OPT_LOCK_REMOVE && !lock_client) {
+      cerr << "rbd: locker was not specified" << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
+
+  if (opt_cmd == OPT_METADATA_GET || opt_cmd == OPT_METADATA_REMOVE ||
+      opt_cmd == OPT_METADATA_SET) {
+    if (!key) {
+      cerr << "rbd: metadata key was not specified" << std::endl;
+      return EXIT_FAILURE;
+    }
+    if (opt_cmd == OPT_METADATA_SET && !value) {
+      cerr << "rbd: metadata value was not specified" << std::endl;
+      return EXIT_FAILURE;
+    }
   }
 
   bool talk_to_cluster = (opt_cmd != OPT_MAP &&
@@ -3882,7 +3898,7 @@ if (!set_conf_param(v, p1, p2, p3)) { \
     break;
 
   case OPT_LOCK_REMOVE:
-    r = do_lock_remove(image, lock_cookie, lock_client);
+    r = do_lock_remove(image, lock_client, lock_cookie);
     if (r < 0) {
       cerr << "rbd: releasing lock failed: " << cpp_strerror(r) << std::endl;
       return -r;
