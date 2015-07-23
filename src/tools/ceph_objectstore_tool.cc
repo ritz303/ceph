@@ -2213,7 +2213,7 @@ int main(int argc, char **argv)
   if (!superblock.compat_features.incompat.contains(CEPH_OSD_FEATURE_INCOMPAT_PGMETA)) {
     derr << "OSD store does not have PGMETA feature." << dendl;
     derr << "You must first upgrade to hammer, or use an older ceph-objectstore-tool." << dendl;
-    r = -EINVAL;
+    ret = -EINVAL;
     goto out;
   }
 
