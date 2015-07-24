@@ -378,6 +378,8 @@ function test_tiering()
   ceph health | grep WARN | grep cache4
   ceph health detail | grep cache4 | grep 'target max' | grep "${max_objects} objects"
   ceph health detail | grep cache4 | grep 'target max' | grep "${max_bytes}B"
+  ceph tell osd.* flush_pg_stats || true
+  ceph df | grep datapool | grep ' 2 '
   ceph osd tier remove-overlay datapool
   ceph osd tier remove datapool cache4
   ceph osd pool delete cache4 cache4 --yes-i-really-really-mean-it
